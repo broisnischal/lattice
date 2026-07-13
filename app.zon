@@ -1,0 +1,33 @@
+.{
+    .id ="app.reader.desktop",
+    .name ="reader",
+    .display_name ="Reader",
+    .description = "Read anything beautifully — books, PDFs, articles and feeds, with an AI copilot.",
+    .version = "0.1.0",
+    .icons = .{ "assets/icon.png" },
+    .platforms = .{ "macos", "linux", "windows" },
+    .permissions = .{},
+    .capabilities = .{ "webview" },
+    .frontend = .{
+        .dist ="frontend/dist",
+        .entry = "index.html",
+        .spa_fallback = true,
+        .dev = .{
+            .url ="http://127.0.0.1:5173/",
+            .command = .{ "npm", "--prefix", "frontend", "run", "dev", "--", "--host", "127.0.0.1" },
+            .ready_path = "/",
+            .timeout_ms = 30000,
+        },
+    },
+    .security = .{
+        .navigation = .{
+            .allowed_origins = .{ "zero://app", "zero://inline", "http://127.0.0.1:5173" },
+            .external_links = .{ .action = "deny" },
+        },
+    },
+    .web_engine = "system",
+    .cef = .{ .dir = "third_party/cef/macos", .auto_install = false },
+    .windows = .{
+        .{ .label = "main", .title ="Reader", .width = 1240, .height = 820, .restore_state = true },
+    },
+}
