@@ -4,6 +4,7 @@ import { api } from "@/api/mock";
 import { useLibrary } from "@/store/library";
 import { parseFile } from "@/lib/import";
 import { FORMAT_META } from "@/lib/format";
+import { countWords } from "@/lib/blocks";
 import type { Book } from "@/api/types";
 
 export type Tab = "url" | "text" | "file" | "notion";
@@ -17,7 +18,7 @@ const TABS: { id: Tab; label: string; icon: typeof Link2 }[] = [
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 const NEUTRAL = { from: "#26262a", to: "#171719" };
-const wordsOf = (book: Book) => book.blocks.reduce((n, b) => n + b.text.split(/\s+/).length, 0);
+const wordsOf = (book: Book) => countWords(book.blocks);
 
 export function ImportDialog({ onClose, initialTab = "url" }: { onClose: () => void; initialTab?: Tab }) {
   const addBook = useLibrary((s) => s.addBook);
@@ -68,7 +69,7 @@ export function ImportDialog({ onClose, initialTab = "url" }: { onClose: () => v
         source: "Upload",
         tags: [],
         blocks: parsed.blocks,
-        wordCount: parsed.blocks.reduce((n, b) => n + b.text.split(/\s+/).length, 0),
+        wordCount: countWords(parsed.blocks),
       };
       setPreview(book);
     } catch (err) {
@@ -208,7 +209,8 @@ function PreviewPane({ book }: { book: Book }) {
       <div className="reader-surface max-h-72 overflow-y-auto rounded-xl border border-[var(--color-border)] px-5 py-4" data-theme="dark">
         <div className="reader-prose !mx-0 !max-w-none" style={{ ["--reader-size" as string]: "1rem", ["--reader-leading" as string]: 1.6 }}>
           {first.map((b, i) =>
-            b.type === "h1" ? <h1 key={i} style={i === 0 ? { marginTop: 0 } : undefined}>{b.text}</h1>
+            b.type === "img" ? <img key={i} src={b.src} alt={b.alt || ""} loading="lazy" />
+            : b.type === "h1" ? <h1 key={i} style={i === 0 ? { marginTop: 0 } : undefined}>{b.text}</h1>
             : b.type === "h2" ? <h2 key={i}>{b.text}</h2>
             : b.type === "h3" ? <h3 key={i}>{b.text}</h3>
             : b.type === "quote" ? <blockquote key={i}>{b.text}</blockquote>

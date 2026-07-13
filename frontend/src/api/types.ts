@@ -26,11 +26,28 @@ export interface Highlight {
   createdAt: number;
 }
 
-/** A reading block — the normalized unit every source is converted into. */
-export interface Block {
+/** A textual reading block. */
+export interface TextBlock {
   type: "h1" | "h2" | "h3" | "p" | "quote";
   text: string;
 }
+
+/**
+ * An image pulled from the source document. `src` is self-contained — a
+ * `data:` URL for EPUB/PDF (so it survives IndexedDB persistence and the
+ * packaged `zero://app` origin with no external fetch) or an absolute URL for
+ * web articles.
+ */
+export interface ImageBlock {
+  type: "img";
+  src: string;
+  alt?: string;
+  /** Optional intrinsic aspect ratio (width/height) to reserve layout space. */
+  ratio?: number;
+}
+
+/** A reading block — the normalized unit every source is converted into. */
+export type Block = TextBlock | ImageBlock;
 
 export interface Book {
   id: string;

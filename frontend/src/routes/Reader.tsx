@@ -24,6 +24,7 @@ function rowPad(type: Block["type"]): React.CSSProperties {
     case "h2": return { paddingTop: "0.85em", paddingBottom: "0.3em" };
     case "h3": return { paddingTop: "0.6em", paddingBottom: "0.25em" };
     case "quote": return { paddingTop: "0.3em", paddingBottom: "0.95em" };
+    case "img": return { paddingTop: "0.4em", paddingBottom: "1.1em" };
     default: return { paddingBottom: "0.95em" };
   }
 }
@@ -186,6 +187,19 @@ export function Reader() {
   }, [hlByBlock, book, removeHighlight]);
 
   function renderBlockEl(b: Block, i: number) {
+    if (b.type === "img") {
+      return (
+        <figure data-block={i} className="reader-block reader-figure" style={{ margin: 0 }}>
+          <img
+            src={b.src}
+            alt={b.alt || ""}
+            loading="lazy"
+            style={b.ratio ? { aspectRatio: String(b.ratio) } : undefined}
+          />
+          {b.alt ? <figcaption>{b.alt}</figcaption> : null}
+        </figure>
+      );
+    }
     const content = renderInline(b.text, i);
     const common = { "data-block": i, className: "reader-block", style: { margin: 0 } } as const;
     switch (b.type) {

@@ -1,4 +1,4 @@
-import type { Block } from "@/api/types";
+import type { Block, TextBlock } from "@/api/types";
 
 /**
  * Lightweight, dependency-free content extraction for the WebView + browser.
@@ -39,17 +39,56 @@ function tagToBlock(el: Element): Block | null {
   }
 }
 
+/** Raw src of an `<img>` or SVG `<image>` element (xlink:href for the latter). */
+function imgSrc(el: Element): string | null {
+  const raw =
+    el.getAttribute("src") ||
+    el.getAttribute("xlink:href") ||
+    el.getAttribute("href") ||
+    "";
+  return raw.trim() || null;
+}
+
+/** Keep only self-contained / absolutely-addressable image URLs (web default). */
+function keepAbsoluteSrc(raw: string): string | null {
+  if (/^(https?:)?\/\//i.test(raw) || /^data:image\//i.test(raw)) return raw;
+  return null;
+}
+
+export interface HtmlToBlocksOptions {
+  /** Capture `<img>` / SVG `<image>` as image blocks (default: text only). */
+  images?: boolean;
+  /**
+   * Map a raw image src to its final src, or null to drop it. Defaults to
+   * keeping only absolute http(s)/protocol-relative/data URLs. EPUB passes an
+   * identity resolver and rewrites the zip-relative paths to data URLs later.
+   */
+  resolveSrc?: (raw: string) => string | null;
+}
+
 /**
- * Pull headings/paragraphs/quotes/list-items in document order. Uses
- * querySelectorAll (worker-safe — no TreeWalker) and drops block tags nested
- * inside another captured block to avoid duplicate text.
+ * Pull headings/paragraphs/quotes/list-items (and optionally images) in
+ * document order. Uses querySelectorAll (worker-safe — no TreeWalker) and drops
+ * block tags nested inside another captured block to avoid duplicate text.
+ * Images are always emitted (never deduped by ancestor) so a figure's image
+ * survives even when its caption paragraph is captured separately.
  */
-export function htmlToBlocks(container: Element): Block[] {
-  const els = Array.from(
-    container.querySelectorAll("h1,h2,h3,h4,h5,h6,p,blockquote,li,pre"),
-  );
+export function htmlToBlocks(container: Element, opts?: HtmlToBlocksOptions): Block[] {
+  const wantImages = opts?.images ?? false;
+  const resolveSrc = opts?.resolveSrc ?? keepAbsoluteSrc;
+  const selector = wantImages
+    ? "h1,h2,h3,h4,h5,h6,p,blockquote,li,pre,img,image"
+    : "h1,h2,h3,h4,h5,h6,p,blockquote,li,pre";
+  const els = Array.from(container.querySelectorAll(selector));
   const blocks: Block[] = [];
   for (const el of els) {
+    const tag = el.tagName.toLowerCase();
+    if (tag === "img" || tag === "image") {
+      const raw = imgSrc(el);
+      const src = raw && resolveSrc(raw);
+      if (src) blocks.push({ type: "img", src, alt: el.getAttribute("alt")?.trim() || undefined });
+      continue;
+    }
     let ancestorCaptured = false;
     let p = el.parentElement;
     while (p && p !== container) {
@@ -58,7 +97,7 @@ export function htmlToBlocks(container: Element): Block[] {
     }
     if (ancestorCaptured) continue;
     const b = tagToBlock(el);
-    if (b && b.text.length > 1) blocks.push(b);
+    if (b && b.type !== "img" && b.text.length > 1) blocks.push(b);
   }
   return blocks;
 }
@@ -115,10 +154,11 @@ export function extractArticle(html: string, fallbackTitle = "Saved article"): E
   ]);
 
   const root = pickContentRoot(doc);
-  let blocks = htmlToBlocks(root);
+  let blocks = htmlToBlocks(root, { images: true });
 
   // Drop a leading block that just repeats the title.
-  if (blocks.length && clean(blocks[0].text).toLowerCase() === clean(title).toLowerCase()) {
+  const first = blocks[0];
+  if (first && first.type !== "img" && clean(first.text).toLowerCase() === clean(title).toLowerCase()) {
     blocks = blocks.slice(1);
   }
   // Ensure the document opens with a title heading.
@@ -192,7 +232,7 @@ function contentToBlocks(raw: string, title: string): { blocks: Block[]; excerpt
   if (looksHtml) {
     const doc = new DOMParser().parseFromString(raw, "text/html");
     doc.querySelectorAll(STRIP_TAGS).forEach((el) => el.remove());
-    blocks = htmlToBlocks(doc.body);
+    blocks = htmlToBlocks(doc.body, { images: true });
   } else {
     blocks = clean(raw)
       .split(/\n{2,}|(?<=\.)\s{2,}/)
@@ -200,7 +240,8 @@ function contentToBlocks(raw: string, title: string): { blocks: Block[]; excerpt
       .filter(Boolean)
       .map((t) => ({ type: "p" as const, text: t }));
   }
-  const excerpt = blocks.find((b) => b.type === "p")?.text.slice(0, 220) || clean(raw).slice(0, 220);
+  const firstPara = blocks.find((b): b is TextBlock => b.type === "p");
+  const excerpt = firstPara?.text.slice(0, 220) || clean(raw).slice(0, 220);
   return { blocks: [{ type: "h1", text: title }, ...blocks], excerpt };
 }
 
