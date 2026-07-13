@@ -517,7 +517,25 @@
   font-style: italic;
   margin: 1.2em 0;
 }
-.reader-prose img { max-width: 100%; border-radius: 10px; }
+.reader-prose img { max-width: 100%; height: auto; border-radius: 10px; }
+.reader-figure {
+  margin: 1.4em 0;
+  text-align: center;
+}
+.reader-figure img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin-inline: auto;
+  background: color-mix(in srgb, var(--r-muted) 12%, transparent);
+}
+.reader-figure figcaption {
+  margin-top: 0.5em;
+  font-family: var(--font-sans);
+  font-size: 0.82em;
+  color: var(--r-muted);
+  text-align: center;
+}
 
 /* Near-free virtualization: the browser skips layout + paint for offscreen
    blocks, so a 6,000-block book opens instantly and scrolls at 60fps with
@@ -530,7 +548,7 @@
 /* Virtualized reader: each block sits in an absolutely-positioned measured
    row, so block margins are zeroed and vertical rhythm comes from the row's
    own padding (see rowPad in Reader.tsx). */
-.reader-virtual :is(h1, h2, h3, p, blockquote) {
+.reader-virtual :is(h1, h2, h3, p, blockquote, figure) {
   margin: 0;
 }
 .reader-prose mark {

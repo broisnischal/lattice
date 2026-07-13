@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Plus, Rss, BookmarkPlus, Check, Loader2, Circle } from "lucide-react";
 import { useLibrary } from "@/store/library";
 import { Tile } from "@/components/Tile";
+import { countWords } from "@/lib/blocks";
 import type { FeedItem } from "@/api/types";
 
 function timeAgo(ts: number) {
@@ -49,7 +50,7 @@ export function Feeds() {
       source: feed?.title ?? "Feed",
       tags: ["saved"],
       blocks: item.blocks,
-      wordCount: item.blocks.reduce((n, b) => n + b.text.split(/\s+/).length, 0),
+      wordCount: countWords(item.blocks),
     });
     setSavedIds((s) => new Set(s).add(item.id));
   }
@@ -114,7 +115,10 @@ export function Feeds() {
               </div>
               <article className="reader-prose !mx-0" style={{ ["--reader-measure" as string]: "62ch" }}>
                 {selected.blocks.map((b, i) =>
-                  b.type === "h1" ? <h1 key={i}>{b.text}</h1> : b.type === "h2" ? <h2 key={i}>{b.text}</h2> : <p key={i}>{b.text}</p>,
+                  b.type === "img" ? <img key={i} src={b.src} alt={b.alt || ""} loading="lazy" />
+                  : b.type === "h1" ? <h1 key={i}>{b.text}</h1>
+                  : b.type === "h2" ? <h2 key={i}>{b.text}</h2>
+                  : <p key={i}>{b.text}</p>,
                 )}
               </article>
             </div>

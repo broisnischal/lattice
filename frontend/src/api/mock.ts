@@ -28,6 +28,7 @@ import type {
 } from "./types";
 import { fetchUrl } from "@/lib/native";
 import { extractArticle, parseFeed } from "@/lib/extract";
+import { blockText, countWords } from "@/lib/blocks";
 import * as content from "@/lib/content";
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -69,7 +70,7 @@ function mkBook(p: Partial<Book> & Pick<Book, "title" | "author" | "format" | "g
     ...chapter("The shape of attention", 5, p.author),
     ...chapter("Notes toward a practice", 4, p.title + p.author),
   ];
-  const wordCount = blocks.reduce((n, b) => n + b.text.split(/\s+/).length, 0);
+  const wordCount = countWords(blocks);
   return {
     id: p.id ?? uid(),
     title: p.title,
@@ -146,7 +147,7 @@ function buildSeedHighlights(): Record<string, Highlight[]> {
     if (!b) return;
     const blockIndex = b.blocks.findIndex((bl, i) => i > 0 && bl.type === "p");
     if (blockIndex < 0) return;
-    const full = b.blocks[blockIndex].text;
+    const full = blockText(b.blocks[blockIndex]);
     const quote = full.split(". ")[0] + ".";
     (map[pick.bookId] ??= []).push({
       id: uid(),
@@ -404,7 +405,7 @@ export const api = {
     const hits: Hit[] = [];
     for (const b of books) {
       b.blocks.forEach((block, i) => {
-        if (block.type === "h1") return;
+        if (block.type === "h1" || block.type === "img") return;
         const score = scoreBlock(block.text, terms);
         if (score > 0) hits.push({ bookId: b.id, bookTitle: b.title, blockIndex: i, quote: snippet(block.text), score });
       });
