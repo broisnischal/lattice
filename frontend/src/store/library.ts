@@ -55,7 +55,17 @@ export const useLibrary = create<LibraryState>((set, get) => ({
       api.listFeedItems(),
       api.listConnections(),
     ]);
-    set({ books, collections, feeds, feedItems, connections, loaded: true });
+    // First run with no saved highlights: seed a few so Highlights / Review /
+    // Threads / library citations have grounded content to show.
+    let highlights = get().highlights;
+    if (Object.keys(highlights).length === 0) {
+      const seeded = await api.listSeedHighlights();
+      if (Object.keys(seeded).length) {
+        highlights = seeded;
+        persistHighlights(seeded);
+      }
+    }
+    set({ books, collections, feeds, feedItems, connections, highlights, loaded: true });
   },
 
   async addBook(book) {

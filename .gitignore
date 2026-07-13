@@ -1,0 +1,20 @@
+# dependencies
+node_modules/
+frontend/node_modules/
+
+# build output
+frontend/dist/
+zig-out/
+.zig-cache/
+zig-cache/
+
+# fetched Native SDK framework (CI clones this next to the repo)
+/../native-sdk/
+
+# logs / os
+*.log
+.DS_Store
+Thumbs.db
+
+# scratch
+*.tmp

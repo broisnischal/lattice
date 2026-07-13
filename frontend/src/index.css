@@ -12,9 +12,9 @@
  * ================================================================== */
 
 @theme {
-  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
-    "Inter", ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
-  --font-serif: "New York", "Iowan Old Style", "Palatino Linotype", Georgia,
+  --font-sans: "Inter Variable", -apple-system, BlinkMacSystemFont, "SF Pro Text",
+    ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
+  --font-serif: "Newsreader Variable", "New York", "Iowan Old Style", Georgia,
     ui-serif, serif;
   --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
 
@@ -37,13 +37,30 @@
   --color-text-2: #8c8c92;
   --color-text-3: #5d5d63;
 
-  /* Accents — used sparingly */
+  /* Accents — retained as variables but NOT used in chrome. Identity is
+     carried by typography and neutral graphite, never by hue. */
   --color-accent: #4c8dff;
   --color-accent-soft: #4c8dff24;
   --color-green: #30d158;
   --color-amber: #ffd60a;
   --color-rose: #ff453a;
   --color-cyan: #64d2ff;
+
+  /* Neutral chrome signals — everything decorative resolves to white/grey. */
+  --color-signal: #f3f3f4;
+  --color-ring-track: rgb(255 255 255 / 0.12);
+
+  /* Graphite icon tile — the one recurring surface motif. No color. */
+  --color-tile-top: #26262a;
+  --color-tile-bottom: #171719;
+
+  /* Muted marker colors (user highlight content — the only permitted hue,
+     kept low-saturation so the chrome still reads monochrome). */
+  --hl-violet: #9b93c4;
+  --hl-amber: #c6ab73;
+  --hl-green: #86b48c;
+  --hl-rose: #c58f95;
+  --hl-cyan: #82abbd;
 
   /* Radii */
   --radius-window: 12px;
@@ -88,13 +105,16 @@
     font-family: var(--font-sans);
     font-size: 14px;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    font-optical-sizing: auto;
+    font-feature-settings: "cv11", "ss01", "calt", "liga";
     overflow: hidden;
-    letter-spacing: -0.006em;
+    letter-spacing: -0.011em;
   }
 
   ::selection {
-    background: var(--color-accent-soft);
+    background: rgb(255 255 255 / 0.16);
   }
 
   button {
@@ -104,7 +124,7 @@
 
   :focus-visible {
     outline: none;
-    box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-accent-soft);
+    box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px rgb(255 255 255 / 0.22);
     border-radius: 8px;
   }
 
@@ -129,19 +149,21 @@
 }
 
 @layer components {
-  /* --- Icon tile: the one place color is allowed ------------------ */
+  /* --- Icon tile: neutral graphite squircle ----------------------
+     No color. A single dark graphite tile with a subtle top sheen and a
+     hairline. Identity comes from the format glyph + typography, never hue. */
   .tile {
     display: grid;
     place-items: center;
-    color: #fff;
+    color: var(--color-text);
     flex-shrink: 0;
     border-radius: var(--radius-tile);
     position: relative;
+    background: linear-gradient(180deg, var(--color-tile-top), var(--color-tile-bottom));
     box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.22),
-      inset 0 -1px 0 rgb(0 0 0 / 0.22),
-      0 1px 2px rgb(0 0 0 / 0.4),
-      0 4px 10px rgb(0 0 0 / 0.28);
+      inset 0 1px 0 rgb(255 255 255 / 0.06),
+      inset 0 0 0 1px rgb(255 255 255 / 0.06),
+      0 1px 2px rgb(0 0 0 / 0.35);
   }
   .tile::after {
     /* soft top-sheen */
@@ -149,8 +171,28 @@
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    background: linear-gradient(180deg, rgb(255 255 255 / 0.16), transparent 55%);
+    background: linear-gradient(180deg, rgb(255 255 255 / 0.05), transparent 52%);
     pointer-events: none;
+  }
+  .tile svg {
+    color: var(--color-text-2);
+  }
+
+  /* --- Neutral badge / dot --------------------------------------- */
+  .badge-neutral {
+    display: grid;
+    place-items: center;
+    height: 18px;
+    min-width: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-text);
+    background: rgb(255 255 255 / 0.1);
+  }
+  .dot-unread {
+    background: var(--color-signal);
   }
 
   /* --- Cards & rows ---------------------------------------------- */
@@ -223,17 +265,19 @@
     color: #101013;
   }
 
+  /* Retained for API compatibility — rendered as a neutral graphite button,
+     never colored. */
   .btn-accent {
-    background: var(--color-accent);
-    color: #fff;
-    border-color: transparent;
+    background: var(--color-surface-3);
+    color: var(--color-text);
+    border-color: var(--color-border-2);
     font-weight: 600;
   }
   .btn-accent:hover {
-    background: #5f9bff;
+    background: var(--color-elevated);
   }
   .btn-accent svg {
-    color: #fff;
+    color: var(--color-text);
   }
 
   .btn-quiet {
@@ -412,7 +456,7 @@
   --r-text: #d6d6da;
   --r-heading: #f4f4f6;
   --r-muted: #86868c;
-  --r-accent: #6ea8ff;
+  --r-accent: #cfcfd4;
   background: var(--r-bg);
   color: var(--r-text);
 }
@@ -421,28 +465,28 @@
   --r-text: #2b2924;
   --r-heading: #17150f;
   --r-muted: #6b6558;
-  --r-accent: #b4531f;
+  --r-accent: #3a352c;
 }
 .reader-surface[data-theme="sepia"] {
   --r-bg: #f2e5cf;
   --r-text: #4b3a26;
   --r-heading: #2e2314;
   --r-muted: #8a7458;
-  --r-accent: #9a5b1e;
+  --r-accent: #4a3a25;
 }
 .reader-surface[data-theme="night"] {
   --r-bg: #050506;
   --r-text: #b6b6bc;
   --r-heading: #e8e8ec;
   --r-muted: #66666c;
-  --r-accent: #64d2ff;
+  --r-accent: #d3d3d8;
 }
 .reader-surface[data-theme="dark"] {
   --r-bg: #0e0e10;
   --r-text: #d6d6da;
   --r-heading: #f4f4f6;
   --r-muted: #86868c;
-  --r-accent: #6ea8ff;
+  --r-accent: #cfcfd4;
 }
 
 .reader-prose {
@@ -474,6 +518,21 @@
   margin: 1.2em 0;
 }
 .reader-prose img { max-width: 100%; border-radius: 10px; }
+
+/* Near-free virtualization: the browser skips layout + paint for offscreen
+   blocks, so a 6,000-block book opens instantly and scrolls at 60fps with
+   flat memory. contain-intrinsic-size gives an estimated height so the
+   scrollbar and scroll position stay stable before a block is rendered. */
+.reader-block {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 3rem;
+}
+/* Virtualized reader: each block sits in an absolutely-positioned measured
+   row, so block margins are zeroed and vertical rhythm comes from the row's
+   own padding (see rowPad in Reader.tsx). */
+.reader-virtual :is(h1, h2, h3, p, blockquote) {
+  margin: 0;
+}
 .reader-prose mark {
   background: color-mix(in srgb, var(--r-accent) 26%, transparent);
   color: inherit;
@@ -501,4 +560,14 @@
 @keyframes pulse-dot {
   0%, 100% { opacity: 0.3; }
   50% { opacity: 1; }
+}
+
+/* Citation deep-link: briefly ring the target block when arriving from Ask. */
+.cite-flash {
+  animation: cite-flash 2s var(--ease-out) both;
+  border-radius: 6px;
+}
+@keyframes cite-flash {
+  0% { background: rgb(255 255 255 / 0.14); box-shadow: 0 0 0 6px rgb(255 255 255 / 0.06); }
+  100% { background: transparent; box-shadow: 0 0 0 6px transparent; }
 }

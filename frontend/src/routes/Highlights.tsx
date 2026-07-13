@@ -3,15 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Highlighter, ArrowUpRight } from "lucide-react";
 import { useLibrary } from "@/store/library";
 import { IconTile } from "@/components/IconTile";
-import type { Highlight } from "@/api/types";
-
-const DOT: Record<Highlight["color"], string> = {
-  violet: "#7c7bff",
-  amber: "#ffd60a",
-  green: "#30d158",
-  rose: "#ff453a",
-  cyan: "#64d2ff",
-};
+import { HL_HEX as DOT } from "@/lib/highlight";
 
 export function Highlights() {
   const { books, highlights } = useLibrary();

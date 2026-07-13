@@ -10,6 +10,9 @@ import { Feeds } from "@/routes/Feeds";
 import { Highlights } from "@/routes/Highlights";
 import { Connections } from "@/routes/Connections";
 import { Settings } from "@/routes/Settings";
+import { AskLibrary } from "@/routes/AskLibrary";
+import { Review } from "@/routes/Review";
+import { Threads } from "@/routes/Threads";
 
 export default function App() {
   const status = useAuth((s) => s.status);
@@ -38,6 +41,9 @@ export default function App() {
         <Routes>
           <Route element={<AppShell />}>
             <Route path="/" element={<Library />} />
+            <Route path="/ask" element={<AskLibrary />} />
+            <Route path="/review" element={<Review />} />
+            <Route path="/threads" element={<Threads />} />
             <Route path="/feeds" element={<Feeds />} />
             <Route path="/highlights" element={<Highlights />} />
             <Route path="/connections" element={<Connections />} />

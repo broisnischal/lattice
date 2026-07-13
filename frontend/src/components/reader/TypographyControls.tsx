@@ -38,7 +38,7 @@ export function TypographyControls() {
         <div className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-[var(--color-text-faint)]">Presets</div>
         <div className="flex flex-wrap gap-1.5">
           {presets.map((p) => (
-            <button key={p.id} onClick={() => applyPreset(p.id)} className="chip !cursor-pointer hover:!border-[var(--color-primary)]">
+            <button key={p.id} onClick={() => applyPreset(p.id)} className="chip !cursor-pointer hover:!border-[var(--color-text)]">
               {p.name}
             </button>
           ))}
@@ -54,7 +54,7 @@ export function TypographyControls() {
               key={t.id}
               onClick={() => set("theme", t.id)}
               className="flex flex-col items-center gap-1.5 rounded-lg border p-2 transition"
-              style={{ borderColor: prefs.theme === t.id ? "var(--color-primary)" : "var(--color-border)" }}
+              style={{ borderColor: prefs.theme === t.id ? "var(--color-text)" : "var(--color-border)" }}
             >
               <span className="h-7 w-full rounded" style={{ background: t.swatch, border: "1px solid rgba(255,255,255,.08)" }} />
               <span className="text-[10.5px] text-[var(--color-text-muted)]">{t.label}</span>
@@ -73,7 +73,7 @@ export function TypographyControls() {
               onClick={() => set("font", f.id)}
               className="rounded-lg border py-2 text-[13px] transition"
               style={{
-                borderColor: prefs.font === f.id ? "var(--color-primary)" : "var(--color-border)",
+                borderColor: prefs.font === f.id ? "var(--color-text)" : "var(--color-border)",
                 fontFamily: f.id === "serif" ? "var(--font-serif)" : "var(--font-sans)",
               }}
             >

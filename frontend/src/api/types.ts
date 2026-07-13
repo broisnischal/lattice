@@ -96,6 +96,19 @@ export interface Connection {
   connected: boolean;
 }
 
+/** A grounded citation returned by a library-wide AI answer. */
+export interface Citation {
+  bookId: string;
+  bookTitle: string;
+  blockIndex: number;
+  quote: string;
+}
+
+export interface LibraryAnswer {
+  answer: string;
+  citations: Citation[];
+}
+
 export type AiRole = "user" | "assistant";
 
 export interface AiMessage {

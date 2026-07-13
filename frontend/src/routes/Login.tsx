@@ -31,12 +31,12 @@ export function Login() {
       {/* Left: brand / pitch */}
       <div className="relative hidden overflow-hidden border-r border-[var(--color-hairline)] lg:block">
         <div className="absolute inset-0 bg-[#070708]" />
-        <div className="absolute -left-32 top-1/3 h-96 w-96 rounded-full bg-[#4c8dff] opacity-[0.10] blur-[130px]" />
-        <div className="absolute right-[-6rem] bottom-6 h-80 w-80 rounded-full bg-[#64d2ff] opacity-[0.06] blur-[130px]" />
+        <div className="absolute -left-40 top-1/4 h-[28rem] w-[28rem] rounded-full bg-white opacity-[0.03] blur-[150px]" />
+        <div className="absolute right-[-8rem] bottom-0 h-80 w-80 rounded-full bg-white opacity-[0.02] blur-[140px]" />
         <div className="relative flex h-full flex-col justify-between p-12">
           <div className="flex items-center gap-2.5">
-            <div className="tile" style={{ width: 34, height: 34, borderRadius: 10, background: "linear-gradient(150deg,#6ea8ff,#4c8dff)" }}>
-              <BookOpen size={19} strokeWidth={2.5} className="relative z-10" />
+            <div className="tile" style={{ width: 34, height: 34, borderRadius: 10 }}>
+              <BookOpen size={19} strokeWidth={2.5} className="relative z-10 text-[var(--color-text)]" />
             </div>
             <span className="text-[17px] font-semibold tracking-tight">Reader</span>
           </div>
@@ -73,7 +73,7 @@ export function Login() {
                 className="flex-1 rounded-lg py-2 text-sm font-medium capitalize transition"
                 style={
                   mode === m
-                    ? { background: "var(--color-primary)", color: "#0b0b12" }
+                    ? { background: "#f4f4f5", color: "#101013" }
                     : { color: "var(--color-text-muted)" }
                 }
               >

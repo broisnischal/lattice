@@ -10,8 +10,8 @@ function Section({ icon: Icon, title, desc, children }: { icon: typeof Shield; t
   return (
     <section className="surface p-5">
       <div className="mb-4 flex items-start gap-3">
-        <div className="tile" style={{ width: 36, height: 36, borderRadius: 10, background: "linear-gradient(140deg,#2a2e38,#14161c)" }}>
-          <Icon size={17} className="text-[var(--color-primary)]" />
+        <div className="tile" style={{ width: 36, height: 36, borderRadius: 10 }}>
+          <Icon size={17} className="text-[var(--color-text-2)]" />
         </div>
         <div>
           <h2 className="text-[15px] font-semibold">{title}</h2>

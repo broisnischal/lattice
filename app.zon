@@ -7,7 +7,12 @@
     .icons = .{ "assets/icon.png" },
     .platforms = .{ "macos", "linux", "windows" },
     .permissions = .{},
-    .capabilities = .{ "webview" },
+    .capabilities = .{ "webview", "js_bridge" },
+    .bridge = .{
+        .commands = .{
+            .{ .name = "net.fetch", .origins = .{ "zero://app", "zero://inline", "http://127.0.0.1:5173" } },
+        },
+    },
     .frontend = .{
         .dist ="frontend/dist",
         .entry = "index.html",

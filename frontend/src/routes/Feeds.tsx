@@ -86,7 +86,7 @@ export function Feeds() {
                 {feed && <Tile gradient={feed.gradient} glyph={feed.glyph} size={38} />}
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
-                    {!item.read && <Circle size={7} className="fill-[var(--color-primary)] text-[var(--color-primary)]" />}
+                    {!item.read && <Circle size={7} className="fill-[var(--color-signal)] text-[var(--color-signal)]" />}
                     <span className="truncate text-[11.5px] font-medium text-[var(--color-text-muted)]">{feed?.title}</span>
                     <span className="ml-auto shrink-0 text-[11px] text-[var(--color-text-faint)]">{timeAgo(item.publishedAt)}</span>
                   </div>

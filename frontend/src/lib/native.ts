@@ -11,7 +11,9 @@
  */
 
 type Zero = {
-  invoke: (command: string, payload?: unknown) => Promise<string>;
+  /** Resolves with the already-parsed `result` value (an object/string/etc),
+   *  or rejects with an Error carrying `.code` on failure. */
+  invoke: (command: string, payload?: unknown) => Promise<unknown>;
 };
 
 function bridge(): Zero | null {
@@ -27,8 +29,9 @@ export function platformName(): "native" | "web" {
 }
 
 /**
- * Invoke a native command, parsing its JSON reply. Falls back to the provided
- * web implementation when the bridge is unavailable.
+ * Invoke a native command. The host resolves the parsed `result` directly, so
+ * there is nothing to JSON.parse here. Falls back to the provided web
+ * implementation when the bridge is unavailable.
  */
 export async function invoke<T>(
   command: string,
@@ -37,8 +40,31 @@ export async function invoke<T>(
 ): Promise<T> {
   const z = bridge();
   if (!z) return webFallback();
-  const raw = await z.invoke(command, payload);
-  return JSON.parse(raw) as T;
+  return (await z.invoke(command, payload)) as T;
+}
+
+export interface FetchResponse {
+  /** HTTP status, or 0 when no bridge/network was available (mock sentinel). */
+  status: number;
+  contentType: string;
+  body: string;
+}
+
+const NO_BRIDGE: FetchResponse = { status: 0, contentType: "", body: "" };
+
+/**
+ * Fetch a URL through the native `net.fetch` bridge command. The WebView
+ * cannot fetch arbitrary origins (CORS/CSP); the Zig shell performs the
+ * request and returns the body. In browser dev there is no bridge, so this
+ * returns a sentinel (status 0, empty body) and callers fall back to mock —
+ * we deliberately do NOT attempt a real cross-origin fetch in the browser.
+ */
+export async function fetchUrl(url: string): Promise<FetchResponse> {
+  try {
+    return await invoke<FetchResponse>("net.fetch", { url }, () => NO_BRIDGE);
+  } catch {
+    return NO_BRIDGE;
+  }
 }
 
 /**

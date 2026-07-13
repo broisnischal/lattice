@@ -17,11 +17,8 @@ export function TopBar() {
 
       {/* app pill */}
       <div className="no-drag flex h-[30px] items-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2.5">
-        <div
-          className="tile"
-          style={{ width: 18, height: 18, borderRadius: 5, background: "linear-gradient(150deg,#6ea8ff,#4c8dff)" }}
-        >
-          <BookOpen size={11} strokeWidth={2.5} className="relative z-10" />
+        <div className="tile" style={{ width: 18, height: 18, borderRadius: 5 }}>
+          <BookOpen size={11} strokeWidth={2.5} className="relative z-10 text-[var(--color-text)]" />
         </div>
         <span className="text-[13px] font-semibold">Reader</span>
       </div>
@@ -30,7 +27,7 @@ export function TopBar() {
 
       {/* workspace + account */}
       <button className="no-drag flex items-center gap-1.5 rounded-lg px-2 py-1 text-[13px] font-medium text-[var(--color-text-2)] transition hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)]">
-        <Check size={14} className="text-[var(--color-green)]" strokeWidth={3} />
+        <Check size={14} className="text-[var(--color-text-2)]" strokeWidth={2.5} />
         {user?.plan === "pro" ? "Pro" : "Personal"}
         <ChevronsUpDown size={13} className="text-[var(--color-text-3)]" />
       </button>

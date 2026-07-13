@@ -1,0 +1,132 @@
+name: Release
+
+# Cross-platform desktop builds published to the GitHub Releases page.
+# Triggers on a version tag (e.g. `v0.1.0`) or a manual dispatch.
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write # required to create the release + upload assets
+
+env:
+  NATIVE_SDK_PATH: "../native-sdk"
+
+jobs:
+  package:
+    name: Package (${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: linux
+            platform: linux
+            asset: reader-linux-x86_64.tar.gz
+          - os: macos-latest
+            target: macos
+            platform: macos
+            asset: reader-macos.zip
+          - os: windows-latest
+            target: windows
+            platform: windows
+            asset: reader-windows-x86_64.zip
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # --- toolchains -------------------------------------------------
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: 0.16.0
+
+      # The `native` CLI (packaging) and the framework Zig sources both ship
+      # in the same npm package; point the build at its global install path.
+      - name: Install Native SDK CLI
+        shell: bash
+        run: |
+          npm install -g @native-sdk/cli
+          echo "SDK_DIR=$(npm root -g)/@native-sdk/cli" >> "$GITHUB_ENV"
+
+      # --- Linux system libraries (GTK4 + WebKitGTK) ------------------
+      - name: Install Linux deps
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-4-dev libwebkitgtk-6.0-dev
+
+      # --- frontend ---------------------------------------------------
+      - name: Build frontend
+        shell: bash
+        run: |
+          npm --prefix frontend ci || npm --prefix frontend install
+          npm --prefix frontend run build
+
+      # --- native package --------------------------------------------
+      - name: Package desktop app
+        shell: bash
+        run: |
+          zig build package \
+            -Dplatform=${{ matrix.platform }} \
+            -Dpackage-target=${{ matrix.target }} \
+            -Doptimize=ReleaseFast \
+            -Dnative-sdk-path="$SDK_DIR"
+
+      # --- archive the output ----------------------------------------
+      - name: Archive (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        shell: bash
+        run: |
+          cd zig-out/package
+          out=$(ls -d reader-*-linux-* | head -1)
+          tar -czf "$GITHUB_WORKSPACE/${{ matrix.asset }}" -C "$out" .
+
+      - name: Archive (macOS)
+        if: matrix.os == 'macos-latest'
+        shell: bash
+        run: |
+          cd zig-out/package
+          app=$(ls -d reader-*-macos-*.app | head -1)
+          ditto -c -k --keepParent "$app" "$GITHUB_WORKSPACE/${{ matrix.asset }}"
+
+      - name: Archive (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          $out = Get-ChildItem "zig-out/package" -Directory | Where-Object { $_.Name -like "reader-*-windows-*" } | Select-Object -First 1
+          Compress-Archive -Path "$($out.FullName)/*" -DestinationPath "$env:GITHUB_WORKSPACE/${{ matrix.asset }}" -Force
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset }}
+          path: ${{ matrix.asset }}
+          if-no-files-found: error
+
+      # --- publish to the Releases page (tag builds only) ------------
+      - name: Publish to Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ matrix.asset }}
+          fail_on_unmatched_files: true
+          generate_release_notes: true
+          draft: false
+          name: Reader ${{ github.ref_name }}
+          body: |
+            Reader ${{ github.ref_name }} — cross-platform desktop builds.
+
+            | Platform | Asset |
+            | --- | --- |
+            | macOS (11+) | `reader-macos.zip` |
+            | Linux (x86_64, needs GTK4 + WebKitGTK) | `reader-linux-x86_64.tar.gz` |
+            | Windows (x86_64) | `reader-windows-x86_64.zip` |
+
+            > macOS/Windows builds are unsigned; the OS may warn on first launch.

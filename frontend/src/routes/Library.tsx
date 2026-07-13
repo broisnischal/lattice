@@ -118,7 +118,7 @@ export function Library() {
                       style={{ color: sort === s ? "var(--color-text)" : "var(--color-text-2)" }}
                     >
                       {SORT_LABEL[s]}
-                      {sort === s && <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-accent)]" />}
+                      {sort === s && <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-signal)]" />}
                     </button>
                   ))}
                 </div>

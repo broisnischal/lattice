@@ -28,7 +28,7 @@ export function Connections() {
                 <div className="flex items-center gap-2">
                   <span className="text-[15px] font-semibold">{c.name}</span>
                   {c.connected && (
-                    <span className="chip !border-[var(--color-accent-green)] !text-[var(--color-accent-green)]">
+                    <span className="chip !text-[var(--color-text)]">
                       <Check size={11} /> Connected
                     </span>
                   )}

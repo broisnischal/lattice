@@ -48,7 +48,7 @@ export function AiPanel({ book, selection, onClose, onClearSelection }: AiPanelP
   return (
     <div className="flex h-full w-[360px] shrink-0 flex-col border-l border-[var(--color-border)] bg-[var(--color-bg-elevated)]">
       <div className="flex items-center gap-2 border-b border-[var(--color-border)] px-4 py-3">
-        <Sparkles size={16} className="text-[var(--color-primary)]" />
+        <Sparkles size={16} className="text-[var(--color-text-2)]" />
         <span className="text-[14px] font-semibold">AI copilot</span>
         <button onClick={onClose} className="ml-auto rounded-lg p-1.5 text-[var(--color-text-faint)] hover:bg-[var(--color-surface)] hover:text-[var(--color-text)]">
           <X size={16} />
@@ -62,7 +62,7 @@ export function AiPanel({ book, selection, onClose, onClearSelection }: AiPanelP
               className="max-w-[92%] whitespace-pre-wrap rounded-2xl px-3.5 py-2.5 text-[13px] leading-relaxed"
               style={
                 m.role === "user"
-                  ? { background: "var(--color-primary)", color: "#0b0b12" }
+                  ? { background: "#f4f4f5", color: "#101013" }
                   : { background: "var(--color-surface)", border: "1px solid var(--color-border)" }
               }
             >
@@ -96,7 +96,7 @@ export function AiPanel({ book, selection, onClose, onClearSelection }: AiPanelP
       <div className="border-t border-[var(--color-border)] p-3">
         <div className="mb-2 flex gap-1.5">
           {QUICK.map(({ label, icon: Icon, prompt }) => (
-            <button key={label} onClick={() => send(prompt)} disabled={busy} className="chip !cursor-pointer hover:!border-[var(--color-primary)] hover:!text-[var(--color-text)]">
+            <button key={label} onClick={() => send(prompt)} disabled={busy} className="chip !cursor-pointer hover:!border-[var(--color-border-2)] hover:!text-[var(--color-text)]">
               <Icon size={12} /> {label}
             </button>
           ))}

@@ -2,16 +2,17 @@ import type { Gradient } from "@/api/types";
 import { cn } from "@/lib/cn";
 
 interface TileProps {
-  gradient: Gradient;
+  /** Retained for call-site compatibility; no longer rendered. */
+  gradient?: Gradient;
   glyph: string;
   size?: number;
   radius?: number;
   className?: string;
 }
 
-/** The colored, gradient icon used for books, collections, feeds, avatars. */
-export function Tile({ gradient, glyph, size = 44, radius = 12, className }: TileProps) {
-  const isImageGlyph = glyph.length <= 2 && /[A-Za-z]/.test(glyph);
+/** The neutral graphite squircle used for feeds, avatars, connections. */
+export function Tile({ glyph, size = 44, radius = 12, className }: TileProps) {
+  const isInitial = glyph.length <= 2 && /[A-Za-z]/.test(glyph);
   return (
     <div
       className={cn("tile", className)}
@@ -19,12 +20,12 @@ export function Tile({ gradient, glyph, size = 44, radius = 12, className }: Til
         width: size,
         height: size,
         borderRadius: radius,
-        background: `linear-gradient(140deg, ${gradient.from}, ${gradient.to})`,
-        fontSize: isImageGlyph ? size * 0.42 : size * 0.5,
-        fontWeight: 700,
+        fontSize: isInitial ? size * 0.4 : size * 0.46,
+        fontWeight: 600,
+        color: "var(--color-text-2)",
       }}
     >
-      <span style={{ filter: "drop-shadow(0 1px 1px rgb(0 0 0 / 0.3))" }}>{glyph}</span>
+      <span className="relative z-10">{glyph}</span>
     </div>
   );
 }
