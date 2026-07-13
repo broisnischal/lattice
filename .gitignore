@@ -18,3 +18,21 @@ Thumbs.db
 
 # scratch
 *.tmp
+
+# Capacitor / mobile native build output.
+# The generated frontend/android + frontend/ios PROJECTS are committed (CI needs
+# them); only their build artifacts and copied web assets are ignored. Each
+# native project also has its own .gitignore — these are defense-in-depth plus
+# the APK/AAB that CI copies to the workspace root.
+frontend/android/app/build/
+frontend/android/build/
+frontend/android/.gradle/
+frontend/android/app/src/main/assets/public/
+frontend/ios/App/build/
+frontend/ios/App/Pods/
+frontend/ios/App/App/public/
+frontend/ios/DerivedData/
+DerivedData/
+*.apk
+*.aab
+*.ipa

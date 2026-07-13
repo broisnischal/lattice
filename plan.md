@@ -146,6 +146,56 @@ screenshot → refine until monochrome + polished.
 
 ---
 
+## 6b. Mobile (iOS + Android) via Capacitor
+
+Desktop stays on the Native SDK shell. Mobile ships the **same** `frontend/dist`
+wrapped by **Capacitor 8** — no UI rewrite (HashRouter → loads bundled dist, works
+offline, identical to desktop WebView).
+
+- **Deps** (`frontend/`): `@capacitor/core`, `@capacitor/preferences`,
+  `@capacitor/filesystem`, `@capacitor/android`, `@capacitor/ios` + dev `@capacitor/cli`.
+- **Config:** `frontend/capacitor.config.json` — `appId app.reader.mobile`,
+  `appName Reader`, `webDir dist`, `server.androidScheme https`. NOTE: a `.ts`
+  config is **not viable** here — the repo pins `typescript@7` (the Go native
+  preview), whose JS module exposes no compiler API (`ts.transpileModule` is
+  undefined), so the Capacitor CLI can't transpile a `.ts` config. JSON is read
+  with zero TypeScript dependency and works locally + in CI.
+- **Native projects** (committed): `frontend/android` (Gradle) and `frontend/ios`
+  (Xcode, **Swift Package Manager** — `App.xcodeproj`, no standalone
+  `.xcworkspace`; scheme `App`). Both created on Linux (`cap add ios` works
+  because Cap 8 uses SPM, not CocoaPods → no `pod install`/macOS needed to scaffold).
+- **npm scripts:** `cap:sync` / `cap:android` / `cap:ios` = `vite build && cap sync[…]`.
+- **Three-way runtime** (`frontend/src/lib/native.ts`): desktop `window.zero`
+  bridge → **Capacitor** (`Capacitor.isNativePlatform()`) → plain web. On
+  Capacitor, `fetchUrl` uses **CapacitorHttp** (no WebView CORS, so web import +
+  RSS work) and `secure{Set,Get,Remove}` use **@capacitor/preferences**. Desktop
+  (`net.fetch` + keychain `store.*`) and web (mock + localStorage) branches are
+  unchanged.
+- **CI:** `.github/workflows/mobile.yml` (additive; desktop `release.yml`
+  untouched). Triggers on `v*` tags + manual dispatch.
+  - **android** (ubuntu): node 20 + JDK 17 + `setup-android` → build web → `cap
+    sync android` → `gradlew assembleDebug` → always ship `reader-android.apk`.
+    If `ANDROID_KEYSTORE_BASE64` secret present → also `assembleRelease
+    bundleRelease` (signed via guarded `signingConfig` in `app/build.gradle`,
+    fed by `-PRELEASE_*` props) → `reader-android-release.apk` + `reader-android.aab`.
+  - **ios** (macos): build web → `cap sync ios` → `xcodebuild -project
+    …/App.xcodeproj -scheme App -sdk iphonesimulator CODE_SIGNING_ALLOWED=NO` →
+    zip `.app` → `reader-ios-simulator.zip` (unsigned, no Apple cert). Device
+    `.ipa` steps are commented (need Apple signing secrets); workflow never fails
+    on missing iOS signing.
+
+**Signing secrets needed for STORE builds:**
+- Android (Play): `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`,
+  `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`.
+- iOS (App Store / device): `APPLE_CERTIFICATE_BASE64`, `APPLE_CERTIFICATE_PASSWORD`,
+  `APPLE_PROVISIONING_PROFILE`, `APPLE_TEAM_ID`.
+
+**Must run on macOS:** the actual iOS `xcodebuild` (simulator or device) and any
+signed `.ipa`. Everything else (scaffolding, `cap sync`, tsc, web build, Android
+APK) runs on Linux/CI.
+
+---
+
 ## 7. Status
 
 - [x] Native SDK shell builds & launches on Linux (bridge round-trip confirmed).

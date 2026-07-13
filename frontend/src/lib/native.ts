@@ -8,7 +8,19 @@
  * bridge is disabled) `window.zero` is absent, so every call falls back to a
  * web-friendly implementation. This lets the whole UI run in Vite without the
  * native shell while keeping a single call site for real native features.
+ *
+ * There are THREE runtimes behind this single call site:
+ *   1. Native SDK desktop  — `window.zero.invoke(...)` routes to Zig handlers.
+ *   2. Capacitor mobile    — the same web bundle packaged for iOS/Android;
+ *      cross-origin HTTP uses CapacitorHttp (no browser CORS on native) and
+ *      persistence uses @capacitor/preferences.
+ *   3. Plain web (Vite dev / browser) — mock/localStorage fallbacks.
+ * Only fetchUrl + secure{Set,Get,Remove} differ per runtime; everything else
+ * is shared. The desktop and web branches are unchanged from before Capacitor.
  */
+
+import { Capacitor, CapacitorHttp } from "@capacitor/core";
+import { Preferences } from "@capacitor/preferences";
 
 type Zero = {
   /** Resolves with the already-parsed `result` value (an object/string/etc),
@@ -22,6 +34,16 @@ function bridge(): Zero | null {
 }
 
 export const hasNativeBridge = (): boolean => bridge() !== null;
+
+/** True when running inside a Capacitor native shell (iOS/Android). Returns
+ *  false in the browser and in the Native SDK desktop shell. */
+function isCapacitor(): boolean {
+  try {
+    return Capacitor.isNativePlatform();
+  } catch {
+    return false;
+  }
+}
 
 /** The host platform, best-effort. Used to tune layout/affordances. */
 export function platformName(): "native" | "web" {
@@ -60,6 +82,21 @@ const NO_BRIDGE: FetchResponse = { status: 0, contentType: "", body: "" };
  * we deliberately do NOT attempt a real cross-origin fetch in the browser.
  */
 export async function fetchUrl(url: string): Promise<FetchResponse> {
+  // Capacitor (iOS/Android): use the native HTTP client, which is exempt from
+  // the WebView's CORS policy, so web import + RSS work exactly like desktop.
+  if (isCapacitor()) {
+    try {
+      const res = await CapacitorHttp.request({ method: "GET", url, responseType: "text" });
+      const headers = res.headers ?? {};
+      const contentType = headers["content-type"] ?? headers["Content-Type"] ?? "";
+      const body =
+        typeof res.data === "string" ? res.data : res.data == null ? "" : JSON.stringify(res.data);
+      return { status: res.status ?? 0, contentType, body };
+    } catch {
+      return NO_BRIDGE;
+    }
+  }
+  // Desktop Native SDK (net.fetch bridge) or plain browser dev (mock sentinel).
   try {
     return await invoke<FetchResponse>("net.fetch", { url }, () => NO_BRIDGE);
   } catch {
@@ -74,6 +111,14 @@ export async function fetchUrl(url: string): Promise<FetchResponse> {
  */
 export async function secureSet(key: string, value: string): Promise<void> {
   const web = () => localStorage.setItem(`reader:${key}`, value);
+  if (isCapacitor()) {
+    try {
+      await Preferences.set({ key: `reader:${key}`, value });
+    } catch {
+      /* best-effort */
+    }
+    return;
+  }
   try {
     await invoke<void>("store.set", { key, value }, web);
   } catch {
@@ -83,6 +128,14 @@ export async function secureSet(key: string, value: string): Promise<void> {
 
 export async function secureGet(key: string): Promise<string | null> {
   const web = () => localStorage.getItem(`reader:${key}`);
+  if (isCapacitor()) {
+    try {
+      const { value } = await Preferences.get({ key: `reader:${key}` });
+      return value ?? null;
+    } catch {
+      return null;
+    }
+  }
   try {
     return await invoke<string | null>("store.get", { key }, web);
   } catch {
@@ -92,6 +145,14 @@ export async function secureGet(key: string): Promise<string | null> {
 
 export async function secureRemove(key: string): Promise<void> {
   const web = () => localStorage.removeItem(`reader:${key}`);
+  if (isCapacitor()) {
+    try {
+      await Preferences.remove({ key: `reader:${key}` });
+    } catch {
+      /* best-effort */
+    }
+    return;
+  }
   try {
     await invoke<void>("store.remove", { key }, web);
   } catch {
